@@ -22,13 +22,23 @@ String Key;     /* Schlüssel */
  *                       zurück.
  */
 
-static int Encipher(int c)
+static int Encipher(int* pos, int c)
   {
-    /*>>>>                                <<<<*
-     *>>>> AUFGABE: Verschlüsseln von `C' <<<<*
-     *>>>>                                <<<<*/
+    if ((char)c >= 'A' && (char)c <= 'Z') {
+      int keylen = strlen(Key);
+      int keypos = *pos % keylen;
+      int offset = Key[keypos] - (int)'A' + 1;
+      int result = c + offset;
+      if ((char)result > 'Z')
+        result = result - (int)'Z' + (int)'A' - 1;
+      printf("[pos %d] %c + %c = %c (%d + %d = %d)\n", *pos, c, Key[keypos], result, c, offset, result);
+      (*pos)++;
+      return result;
+    } else {
+      printf("[pos %d] %c\n", *pos, c);
+      return c;
+    }
   }
-
 
 /*
  * int Decipher(int c) : Interpretiert C als Zeichen, entschlüsselt es nach der
@@ -36,11 +46,22 @@ static int Encipher(int c)
  *                       zurück.
  */
 
-static int Decipher(int c)
+static int Decipher(int*pos, int c)
   {
-    /*>>>>                                <<<<*
-     *>>>> AUFGABE: Entschlüsseln von `C' <<<<*
-     *>>>>                                <<<<*/
+    if ((char)c >= 'A' && (char)c <= 'Z') {
+      int keylen = strlen(Key);
+      int keypos = *pos % keylen;
+      int offset = Key[keypos] - (int)'A' + 1;
+      int result = c - offset;
+      if ((char)result < 'A')
+        result = result + (int)'Z' - (int)'A' + 1;
+      printf("[pos %d] %c - %c = %c (%d - %d = %d)\n", *pos, c, Key[keypos], result, c, offset, result);
+      (*pos)++;
+      return result;
+    } else {
+      printf("[pos %d] %c\n", *pos, c);
+      return c;
+    }
   }
 
 
@@ -110,6 +131,7 @@ int main(int argc, char **argv)
    *    decipher : Flag, == 1 im Entschlüsselungsmodus, ansonsten 0.
    */
 
+  int pos = 0;
   do {
     fgets(zeile,sizeof(zeile),infile);
     if (!feof(infile)) {
@@ -117,7 +139,17 @@ int main(int argc, char **argv)
       string_to_upper(zeile);
       /*>>>>                                           <<<<*
        *>>>> AUFGABE: Vigenere-Verschlüsseln von ZEILE <<<<*
-       *>>>>                                           <<<<*/
+       *>>>>
+                                                  <<<<*/
+      int i = 0;
+      for (; i < strlen(zeile); ++i)
+      {
+        if (!decipher)
+          zeile[i] = Encipher(&pos, zeile[i]);
+        else
+          zeile[i] = Decipher(&pos, zeile[i]);
+      }
+      
       fprintf(outfile,"%s\n",zeile);
     }
   }
