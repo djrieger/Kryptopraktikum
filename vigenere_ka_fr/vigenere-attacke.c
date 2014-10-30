@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <praktikum.h>
+#include <math.h>
 
 #define NUMCHARS    26       /* Anzahl der Zeichenm, die betrachtet werden ('A' .. 'Z') */
 #define MaxFileLen  32768    /* Maximale Größe des zu entschlüsselnden Textes */
@@ -111,12 +112,44 @@ static void GetFile(void)
 
 static void CountChars( int start, int offset, int h[NUMCHARS])
   {
-    int i;
+    int i, n = 0;
     char c;
 
-    for (i=0; i<NUMCHARS; i++) h[i] = 0;
+    // 1.
+
+    for (i = 0; i < NUMCHARS; i++) h[i] = 0;
+    for (i = 0; i < strlen(TextArray); i++)
+    {
+      c = TextArray[i];
+      if (c >= 'A' && c <= 'Z')
+      {
+        h[c - 'A']++;
+        n++;
+      } 
+    }
+
+
 
     /*****************  Aufgabe  *****************/
+
+  }
+
+static void crack()
+  {
+    int h[NUMCHARS];
+    CountChars(0, 1, h);
+
+    // 2. (4.2)
+    double Ic = 0;
+    for (i = 0; i < NUMCHARS; i++) {
+      PropTable[i] = h[i] / n;
+       Ic +=  pow(PropTable[i], 2);
+    }
+
+    // 2. (4.4)
+    int l = (269 * n)/((169-2600 * Ic)+(100+2600 * Ic) * n);
+
+    // 3.
   }
 
 
