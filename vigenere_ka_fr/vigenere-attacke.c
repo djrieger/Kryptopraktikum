@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <praktikum.h>
-#include <math.h>
+//#include <math.h>
 
 #define NUMCHARS    26       /* Anzahl der Zeichenm, die betrachtet werden ('A' .. 'Z') */
 #define MaxFileLen  32768    /* Maximale Größe des zu entschlüsselnden Textes */
@@ -21,7 +21,7 @@ const char *StatisticFileName = "statistik.data";  /* Filename der Wahrscheinlic
 const char *WorkFile          = "testtext.ciph";   /* Filename des verschlüsselten Textes */
 
 double PropTable[NUMCHARS]; /* Tabellke mit den Zeichenwahrscheinlichkeiten.
-			     * ProbTable[0] == 'A', PropTable[1] == 'B' usw. */
+                 * ProbTable[0] == 'A', PropTable[1] == 'B' usw. */
 char TextArray[MaxFileLen]; /* die eingelesene Datei */
 int TextLength;             /* Anzahl der gültigen Zeichen in TextArray */
 
@@ -33,28 +33,31 @@ int TextLength;             /* Anzahl der gültigen Zeichen in TextArray */
  */
 
 static void GetStatisticTable(void)
-  {
+{
     FILE *inp;
     int i;
     char line[64];
 
-    if (!(inp=fopen(StatisticFileName,"r"))) {
-      fprintf(stderr,"FEHLER: File %s kann nicht geöffnet werden: %s\n",
-	      StatisticFileName,strerror(errno));
-      exit(20);
+    if (!(inp = fopen(StatisticFileName, "r")))
+    {
+        fprintf(stderr, "FEHLER: File %s kann nicht geöffnet werden: %s\n",
+                StatisticFileName, strerror(errno));
+        exit(20);
     }
 
-    for (i=0; i<TABSIZE(PropTable); i++) {
-      fgets(line,sizeof(line),inp);
-      if (feof(inp)) {
-        fprintf(stderr,"FEHLER: Unerwartetes Dateieine in %s nach %d Einträgen.\n",
-		StatisticFileName,i);
-	exit(20);
-      }
-      PropTable[i] = atof(line);
+    for (i = 0; i < TABSIZE(PropTable); i++)
+    {
+        fgets(line, sizeof(line), inp);
+        if (feof(inp))
+        {
+            fprintf(stderr, "FEHLER: Unerwartetes Dateieine in %s nach %d Einträgen.\n",
+                    StatisticFileName, i);
+            exit(20);
+        }
+        PropTable[i] = atof(line);
     }
     fclose(inp);
-  }
+}
 
 /*-------------------------------------------------------------------------*/
 
@@ -66,31 +69,35 @@ static void GetStatisticTable(void)
  */
 
 static void GetFile(void)
-  {
+{
     FILE *inp;
     char c;
 
-    if (!(inp=fopen(WorkFile,"r"))) {
-      fprintf(stderr,"FEHLER: File %s kann nicht geöffnet werden: %s\n",
-	      WorkFile,strerror(errno));
-      exit(20);
+    if (!(inp = fopen(WorkFile, "r")))
+    {
+        fprintf(stderr, "FEHLER: File %s kann nicht geöffnet werden: %s\n",
+                WorkFile, strerror(errno));
+        exit(20);
     }
 
-    TextLength=0;
-    while (!feof(inp)) {
-      c = fgetc(inp);
-      if (feof(inp)) break;
-      if (c>='a' && c<='z') c -= 32;
-      if (c>='A' && c<='Z') {
-	if (TextLength >= sizeof(TextArray)) {
-	  fprintf(stderr,"FEHLER: Eingabepuffer nach %d Zeichen übergelaufen!\n",TextLength);
-	  exit(20);
-	}
-        TextArray[TextLength++] = c;
-      }
+    TextLength = 0;
+    while (!feof(inp))
+    {
+        c = fgetc(inp);
+        if (feof(inp)) break;
+        if (c >= 'a' && c <= 'z') c -= 32;
+        if (c >= 'A' && c <= 'Z')
+        {
+            if (TextLength >= sizeof(TextArray))
+            {
+                fprintf(stderr, "FEHLER: Eingabepuffer nach %d Zeichen übergelaufen!\n", TextLength);
+                exit(20);
+            }
+            TextArray[TextLength++] = c;
+        }
     }
     fclose(inp);
-  }
+}
 
 
 /*--------------------------------------------------------------------------*/
@@ -103,7 +110,7 @@ static void GetFile(void)
  * Tabelle) die Zählung beginnen soll und OFFSET ist die Anzahl der
  * Zeichen, die nach dem 'Zählen' eines Zeichens weitergeschaltet
  * werden soll. 'A' wird in h[0], 'B' in h[1] usw. gezählt.
- *  
+ *
  *  Beispiel:  OFFSET==3, START==1 --> 1,  4,  7,  10, ....
  *             OFFSET==5, START==3 --> 3,  8, 13,  18, ....
  *
@@ -111,46 +118,128 @@ static void GetFile(void)
  */
 
 static void CountChars( int start, int offset, int h[NUMCHARS])
-  {
-    int i, n = 0;
-    char c;
-
+{
+    int i;
     // 1.
 
+    //printf("CountChars: start = %d, offset = %d\n", start, offset);
+
     for (i = 0; i < NUMCHARS; i++) h[i] = 0;
-    for (i = 0; i < strlen(TextArray); i++)
-    {
-      c = TextArray[i];
-      if (c >= 'A' && c <= 'Z')
-      {
-        h[c - 'A']++;
-        n++;
-      } 
-    }
+    for (i = start - 1; i < TextLength; i = i + offset)
+        h[TextArray[i] - 'A']++;
+}
 
+static void CountRelativeChars(int start, int offset, double rel_h[NUMCHARS])
+{
+    int h[NUMCHARS];
+    CountChars(start, offset, h);
+    int i;
+    for (i = 0; i < NUMCHARS; i++)
+        rel_h[i] = (double)h[i] / TextLength;
+}
 
+int findMaxPos(double rel_h[NUMCHARS], double *maximum)
+{
+    int i;
+    int index = -1;
+    for (i = 0; i < NUMCHARS; i++)
+        if (rel_h[i] > *maximum)
+        {
+            *maximum = rel_h[i];
+            index = i;
+        }
 
-    /*****************  Aufgabe  *****************/
+    return index;
+}
 
-  }
+double absFoo(double foo)
+{
+	return foo < 0 ? -foo : foo;
+}
 
 static void crack()
-  {
-    int h[NUMCHARS];
-    CountChars(0, 1, h);
+{
+	int i;
+	/**
+    double foo = 0;
+    
+    for (i = 0; i < NUMCHARS; i++)
+    {
+        foo +=  PropTable[i] * PropTable[i];
+    }
+    printf("Summe p_i^2 = %.4f", foo); // = 0.662
+	*/
+
+
+    double h[NUMCHARS];
+    CountRelativeChars(1, 1, h);
 
     // 2. (4.2)
     double Ic = 0;
-    for (i = 0; i < NUMCHARS; i++) {
-      PropTable[i] = h[i] / n;
-       Ic +=  pow(PropTable[i], 2);
+    for (i = 0; i < NUMCHARS; i++)
+    {
+        Ic += h[i] * h[i];
     }
 
-    // 2. (4.4)
-    int l = (269 * n)/((169-2600 * Ic)+(100+2600 * Ic) * n);
+    printf("Ic = %.4f\n", Ic);
+    printf("TextLength = %d\n", TextLength);
 
-    // 3.
-  }
+    // 2. (4.4)
+    int n = TextLength;
+    //int l_ = (269 * n) / ((169 - 2600 * Ic) + (100 + 2600 * Ic) * n);
+    //(269 * 18970) / ((169 - 2600 * 0.0401) + (100 + 2600 * 0.0401) * 18970)
+    //printf("according to formula (4.4) l = %d\n", l_);
+
+    // find character with maximum probability in PropTable
+    double propTableMax = -1;
+    int propTableMaxPos = findMaxPos(PropTable, &propTableMax);
+
+    int l;
+    int minDiffL = -1;
+    double diff = 10000;
+    //for (l = l_ - 2; l <= l_ + 2; l++)
+ 	for (l = 1; l < 20; l++)
+    {
+    	double Ic_l = (float)(n - l)/(l*(n-1)) * 0.065 + (float)((l-1)*n)/(l*(n-1)) / 26.0;
+    	if (absFoo(Ic_l - Ic) < diff) {
+    		diff = absFoo(Ic_l - Ic);
+    		minDiffL = l;
+    	}
+    	printf("Ic-Kandidat für l = %d: %.4f, diff = %.6f\n", l, Ic_l, absFoo(Ic_l - Ic));
+	}
+	printf("minDiffL = %d\n\n\n", minDiffL);
+
+
+    for (l = minDiffL - 2; l <= minDiffL + 2; l++)
+    //for (l = minDiffL; l <= minDiffL; l++)
+    {
+    	printf("l = %d\n", l);
+        int start;
+        for (start = 1; start <= l; start++)
+        {
+            // 3.
+            CountRelativeChars(start, l, h);
+            double hMax = -1;
+            int hMaxPos = findMaxPos(h, &hMax);
+
+
+            //printf("l = %d, hMax = %.4f, propMax = %.4f\n", l, hMax, propTableMax);
+            //if ()
+            //{
+                //printf("Key length should be l = %d\n", l);
+                int shift = (hMaxPos - propTableMaxPos);
+                char shiftChar;
+                if (shift > 0)
+                	 shiftChar = shift + 'A' - 1; //shift < 0 ? 'Z' + shift + 1 : 'A' + shift - 1;
+                else
+                	shiftChar = shift + 'Z';
+                printf("hMaxPos = %d, Shift = %d (%c)\n", hMaxPos, shift, shiftChar);
+                
+            //}
+        }
+        printf("-----------\n");
+    }
+}
 
 
 /*------------------------------------------------------------------------------*/
@@ -158,9 +247,10 @@ static void crack()
 int main(int argc, char **argv)
 {
 
-  GetStatisticTable();     /* Wahrscheinlichkeiten einlesen */
-  GetFile();               /* zu bearbeitendes File einlesen */
+    GetStatisticTable();     /* Wahrscheinlichkeiten einlesen */
+    GetFile();               /* zu bearbeitendes File einlesen */
 
-  /*****************  Aufgabe  *****************/
-  return 0;
+    /*****************  Aufgabe  *****************/
+    crack();
+    return 0;
 }
