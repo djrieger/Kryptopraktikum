@@ -1,2 +1,4 @@
 *.o
 vigenere
+makeandrun.sh
+vigenere-attacke
