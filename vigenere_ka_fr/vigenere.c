@@ -31,11 +31,11 @@ static int Encipher(int* pos, int c)
       int result = c + offset;
       if ((char)result > 'Z')
         result = result - (int)'Z' + (int)'A' - 1;
-      printf("[pos %d] %c + %c = %c (%d + %d = %d)\n", *pos, c, Key[keypos], result, c, offset, result);
+      //printf("[pos %d] %c + %c = %c (%d + %d = %d)\n", *pos, c, Key[keypos], result, c, offset, result);
       (*pos)++;
       return result;
     } else {
-      printf("[pos %d] %c\n", *pos, c);
+      //printf("[pos %d] %c\n", *pos, c);
       return c;
     }
   }
@@ -55,11 +55,11 @@ static int Decipher(int*pos, int c)
       int result = c - offset;
       if ((char)result < 'A')
         result = result + (int)'Z' - (int)'A' + 1;
-      printf("[pos %d] %c - %c = %c (%d - %d = %d)\n", *pos, c, Key[keypos], result, c, offset, result);
+      //printf("[pos %d] %c - %c = %c (%d - %d = %d)\n", *pos, c, Key[keypos], result, c, offset, result);
       (*pos)++;
       return result;
     } else {
-      printf("[pos %d] %c\n", *pos, c);
+      //printf("[pos %d] %c\n", *pos, c);
       return c;
     }
   }
@@ -82,6 +82,7 @@ int main(int argc, char **argv)
 
   /* Wenn die Ein- bzw. Ausgabedatei oder der Schlüssel nicht in der
    * Kommandozeile angegeben wurden, fragen wir einfach nach .... */
+ /* 
   if (argc<2) readline("Eingabefile : ",infilename,sizeof(infilename));
   else strncpy(infilename,argv[1],sizeof(infilename));
   if (argc<3) readline("Ausgabefile : ",outfilename,sizeof(outfilename));
@@ -151,6 +152,8 @@ int main(int argc, char **argv)
       }
       
       fprintf(outfile,"%s\n",zeile);
+      
+      printf("%s\n",zeile);
     }
   }
   while (!feof(infile));

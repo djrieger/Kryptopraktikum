@@ -142,6 +142,7 @@ int findMaxPos(double rel_h[NUMCHARS], double *maximum)
 {
     int i;
     int index = -1;
+    *maximum = 0;
     for (i = 0; i < NUMCHARS; i++)
         if (rel_h[i] > *maximum)
         {
@@ -193,6 +194,7 @@ static void crack()
     // find character with maximum probability in PropTable
     double propTableMax = -1;
     int propTableMaxPos = findMaxPos(PropTable, &propTableMax);
+    printf("propTable has maxmimum %.4f at %d\n", propTableMax, propTableMaxPos);
 
     int l;
     int minDiffL = -1;
@@ -213,11 +215,16 @@ static void crack()
     for (l = minDiffL - 2; l <= minDiffL + 2; l++)
     //for (l = minDiffL; l <= minDiffL; l++)
     {
-    	printf("l = %d\n", l);
+    	printf("l = %d: ", l);
         int start;
+
+        char key[l + 1];
+
         for (start = 1; start <= l; start++)
         {
             // 3.
+            // count relative occurrences of Caesar start, start + l, ...
+            // and determine character with highest probability (at hMaxPos)
             CountRelativeChars(start, l, h);
             double hMax = -1;
             int hMaxPos = findMaxPos(h, &hMax);
@@ -233,11 +240,14 @@ static void crack()
                 	 shiftChar = shift + 'A' - 1; //shift < 0 ? 'Z' + shift + 1 : 'A' + shift - 1;
                 else
                 	shiftChar = shift + 'Z';
-                printf("hMaxPos = %d, Shift = %d (%c)\n", hMaxPos, shift, shiftChar);
+                key[start - 1] = shiftChar;
+                //printf("hMaxPos = %d, Shift = %d (%c)\n", hMaxPos, shift, shiftChar);
                 
             //}
         }
-        printf("-----------\n");
+        key[l] = '\0';
+        printf("%s\n", key);
+        //printf("-----------\n");
     }
 }
 
