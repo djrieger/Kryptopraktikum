@@ -17,25 +17,10 @@
 int diff1, diff2;
 
 
-int pin[9000], prob[9000], try[9000];
+int pin[9000], prob[9000], trypin[9000];
 
 
 void attack(void)
-{
-    int i;
-    /*>>>>                                                      <<<<*/
-    /*>>>>  Aufgabe: Bestimmen die PIN                          <<<<*/
-    /*>>>>                                                      <<<<*/
-    printf("Die PIN ist: %d\n", i);
-
-}
-
-int map(int c)
-{
-	return c <= 9 ? c : c - 10;
-}
-
-int main(void)
 {
     int i, pin1, pin2, pin3, pin4;
     int pins[65536][4];
@@ -61,22 +46,52 @@ int main(void)
     				pins[i][2] = map(pin3);
     				pins[i][3] = map(pin4);
 
-    				printf("%d%d%d%d == ", pins[i][0], pins[i][1], pins[i][2], pins[i][3]);
+    				//printf("%d%d%d%d == ", pins[i][0], pins[i][1], pins[i][2], pins[i][3]);
     				int index = pins[i][3] + 10 * pins[i][2] + 100 * pins[i][1] + 1000 * pins[i][0] - 1000;
-    				printf("%d", index);
+    				//printf("%d", index);
     				prob[index]++;
-    				printf(" (prob = %d)\n", prob[index]);
+    				//printf(" (prob = %d)\n", prob[index]);
 
     				i++;
     				//if (i >= 50)
     				//	return 0;
     			}
 
-    printf("---------\n");
-    for (i = 0; i < 50; i++)
-		printf("%d: %d\n", pin[i], prob[i]);    			
-	return 0;
+//    printf("---------\n");
+    //for (i = 0; i < 50; i++)
+	//	printf("%d: %d\n", pin[i], prob[i]);    			
 
+	// sort
+	int highestProb = -1;
+	int highestProbIndex = -1;
+	int j;
+	for (i = 0; i < 100; i++)
+    {
+    	for (j = 0; j < 9000; j++)
+    	{
+    		if (prob[j] > highestProb) {
+    			highestProb = prob[j];
+    			highestProbIndex = j;
+    		}
+    	}
+
+    	trypin[i] = pin[highestProbIndex];    	
+    	printf("%d correct = %d\n", trypin[i], try_pin(trypin[i]));
+    	//printf("%d: %d\n", trypin[i], highestProb);
+
+    	highestProb = -1;
+    	prob[highestProbIndex] = -1;
+    }
+
+}
+
+int map(int c)
+{
+	return c <= 9 ? c : c - 10;
+}
+
+int main(void)
+{
 	open_connection(0, &diff1, &diff2);
 	attack();
 	close_connection();
