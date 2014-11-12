@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=-O1 -g
 
 OBJECTS=	pin.o clientlib.o
-LIB=
+LIB= -lm
 
 pin: ${OBJECTS}
 	cc -o pin ${LDFLAGS} ${OBJECTS} ${LIB}
