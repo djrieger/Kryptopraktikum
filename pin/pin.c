@@ -40,6 +40,14 @@ int main(void)
     int i, pin1, pin2, pin3, pin4;
     int pins[65536][4];
 
+    // prob = 0
+
+    for (i = 1000; i <= 9999; i++)
+    {
+    	pin[i - 1000] = i;
+    	prob[i - 1000] = 0;
+    }
+
     i = 0;
     for (pin1 = 0; pin1 < 16; pin1++)
     	for (pin2 = 0; pin2 < 16; pin2++)
@@ -53,12 +61,20 @@ int main(void)
     				pins[i][2] = map(pin3);
     				pins[i][3] = map(pin4);
 
-    				printf("%d%d%d%d\n", pins[i][0], pins[i][1], pins[i][2], pins[i][3]);
+    				printf("%d%d%d%d == ", pins[i][0], pins[i][1], pins[i][2], pins[i][3]);
+    				int index = pins[i][3] + 10 * pins[i][2] + 100 * pins[i][1] + 1000 * pins[i][0] - 1000;
+    				printf("%d", index);
+    				prob[index]++;
+    				printf(" (prob = %d)\n", prob[index]);
 
     				i++;
-    				if (i >= 50)
-    					return 0;
+    				//if (i >= 50)
+    				//	return 0;
     			}
+
+    printf("---------\n");
+    for (i = 0; i < 50; i++)
+		printf("%d: %d\n", pin[i], prob[i]);    			
 	return 0;
 
 	open_connection(0, &diff1, &diff2);
