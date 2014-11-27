@@ -67,66 +67,75 @@ ubyte test(ubyte u, ubyte v, int *keyoverflow) {
   return w;
 }
 
-int lastButOneBitSet(ubyte u)
+int isBitSet(ubyte u, int bitPos)
 {
-  return ((1 << 1) & u) / 2;
+  return (u & (1 << bitPos)) > 0;
 }
 
-int findBitWithValue(ubyte number[4], int bitValue) {
+int findBitWithValue(ubyte number[4], int bitPos, int bitValue) {
   int i;
   for (i = 0; i < 4; i++) {
-    if (lastButOneBitSet(number[i]) == bitValue) {
+    if (isBitSet(number[i], bitPos) == bitValue) {
       return i;
     }
   }
   return -1;
 }
 
-int findSpecialBit(ubyte number[4], int *bitValue) {
+int findSpecialBit(ubyte number[4], int bitPos, int *bitValue) {
   int index, i;
   int bitCount = 0;
   // sum last but one column
   for (i = 0; i < 4; i++) {
-    bitCount += lastButOneBitSet(number[i]);
+    bitCount += isBitSet(number[i], bitPos);
   }
   if (bitCount == 3) {
-    index = findBitWithValue(number, 0);
+    index = findBitWithValue(number, bitPos, 0);
   } else if (bitCount == 1) {
-    index = findBitWithValue(number, 1);
+    index = findBitWithValue(number, bitPos, 1);
   } else {
     printf("ERRROR\n");
   }
-  *bitValue = lastButOneBitSet(number[index]);
+  *bitValue = isBitSet(number[index], bitPos);
   return index;
 }
 
+void setBit(ubyte *number, int bitPosition)
+{
+  *number = *number | 1 << bitPosition;
+}
+
 void test2() {
-  int keyoverflow;
+  ubyte k1,k2,k3;
+  k1 = 0;
+  k2 = 0;
+  k3 = 0;
+  int keyoverflow, bitPos;
   ubyte w[4];
+
   w[0] = test(0, 0, &keyoverflow);
   w[1] = test(1, 0, &keyoverflow);
   w[2] = test(0, 1, &keyoverflow);
   w[3] = test(1, 1, &keyoverflow);
-  // vorletztes Bit gesetzt?
-  int lastButOneBitValue;
-  int specialBit = findSpecialBit(w, &lastButOneBitValue);
-  printf("special at %d, value %d\n", specialBit, lastButOneBitValue);
 
-  /*
-    int bitSet = lastButOneBitSet(w[i]);
-    printf("bit %d", bitSet);
-    
-    for (j = 0; j < 4; j++) {
-      if (j != i) {
-        sameBitSet += lastButOneBitSet(w[i]) == lastButOneBitSet(w[j]);
-        if (lastButOneBitSet(w[i]) != lastButOneBitSet(w[j])) {
-          index = j;
-        }
-      }
-    }
-    printf("special bit at %d, same bits %d\n", index, sameBitSet);
-  }
-  */
+  for (bitPos = 0; bitPos <= 6; bitPos++) {
+    int specialBitValue;
+    int specialBit = findSpecialBit(w, bitPos, &specialBitValue);
+    printf("special at %d, value %d\n", specialBit, specialBitValue);
+
+     switch (specialBit) 
+     {
+        case 0: setBit(&k1, bitPos); setBit(&k2, bitPos); break;
+        case 1: setBit(&k2, bitPos); break;
+        case 2: setBit(&k1, bitPos); break;
+        case 3:  break;
+        default: printf("ERROR\n");
+     }
+   }
+
+  printBits(sizeof(k1), &k1);
+  printf("\n");
+  printBits(sizeof(k2), &k2);
 }
 
 int main(int argc, char **argv)
