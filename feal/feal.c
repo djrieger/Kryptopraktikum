@@ -129,7 +129,7 @@ int findSpecialBit(ubyte number[4], int bitPos, int *bitValue) {
     } else if (bitCount == 1) {
         index = findBitWithValue(number, bitPos, 1);
     } else {
-        printf("Error: Invalid bit sum %d in column %d, expected 1 or 3\n", bitCount, bitPos);
+        printf("\033[1;31mError: Invalid bit sum %d in column %d, expected 1 or 3\033[0m\n", bitCount, bitPos);
     }
     *bitValue = isBitSet(number[index], bitPos);
     return index;
@@ -140,13 +140,13 @@ void setBit(ubyte *number, int bitPosition)
     *number = *number | 1 << bitPosition;
 }
 
-void crack_k1_and_k2() {
-    ubyte k1 = 0;
-    ubyte k2 = 0;
+void crack_k1_and_k2(ubyte *k1, ubyte *k2, ubyte *k3) {
+    *k1 = 0;
+    *k2 = 0;
     int keyoverflow, bitPos;
     ubyte w[4];
 
-    for (bitPos = 1; bitPos <= 6; bitPos++) {
+    for (bitPos = 1; bitPos <= 7; bitPos++) {
         // Berechne w für die vier Kombinationen von u und v
         w[0] = test(0, 0, &keyoverflow, bitPos);
         w[1] = test(1 << bitPos - 1, 0, &keyoverflow, bitPos);
@@ -163,14 +163,14 @@ void crack_k1_and_k2() {
         switch (specialBit)
         {
         case 0:
-            setBit(&k1, bitPos - 1);
-            setBit(&k2, bitPos - 1);
+            setBit(k1, bitPos - 1);
+            setBit(k2, bitPos - 1);
             break;
         case 1:
-            setBit(&k2, bitPos - 1);
+            setBit(k2, bitPos - 1);
             break;
         case 2:
-            setBit(&k1, bitPos - 1);
+            setBit(k1, bitPos - 1);
             break;
         case 3:
             break;
@@ -181,10 +181,10 @@ void crack_k1_and_k2() {
 
     // Gebe gefundene Werte für k1 und k2 aus
     printf("k1 = ");
-    printBits(sizeof(k1), &k1, -1);
+    printBits(sizeof(*k1), k1, -1);
     printf("\n");
     printf("k2 = ");
-    printBits(sizeof(k2), &k2, -1);
+    printBits(sizeof(*k2), k2, -1);
     printf("\n");
 }
 
@@ -192,11 +192,10 @@ int main(int argc, char **argv)
 {
     ubyte k1,k2,k3;
     Feal_NewKey();
-    crack_k1_and_k2();
+    crack_k1_and_k2(&k1, &k2, &k3);
+    // TODO: k3 knacken
+    k3 = 0;
 
-    /*>>>>                                                      <<<<*/
-    /*>>>>  Aufgabe: Bestimmen der geheimen Schlüssel k1,k2,k3  <<<<*/
-    /*>>>>                                                      <<<<*/
     printf("Lösung: $%02x $%02x $%02x: %s",k1,k2,k3, Feal_CheckKey(k1,k2,k3)?"OK!":"falsch" );
     return 0;
 }
