@@ -20,6 +20,11 @@ static ubyte rotr(ubyte a)
     return ( (a>>2) | (a<<6) ) & 0xff;
 }
 
+static ubyte rotl(ubyte a)
+{
+    return ( (a>>6) | (a<<2) ) & 0xff;
+}
+
 static ubyte calc_f(ubyte u, ubyte v)
 {
     int overflow;
@@ -68,14 +73,10 @@ void printBits(size_t const size, void const * const ptr, int highlightPos)
 /*
  * Berechne w = G'(u, v) und gibt u, v und w als Binärzahlen aus
  *
- * @param keyoverflow   Gibt 1 zurück, falls es einen Überlauf gab, sonst ß
  * @param highlightPos  Die Bitposition, die rot ausgegeben werden soll
  */
-ubyte test(ubyte u, ubyte v, int *keyoverflow, int highlightPos) {
-    ubyte w = rotr(Feal_GS(u, v, keyoverflow));
-    if (keyoverflow == 1) {
-        printf("ERROR: keyoverflow = 1\n");
-    }
+ubyte test(ubyte u, ubyte v, int highlightPos) {
+    ubyte w = rotr(calc_f(u, v));
     printf("\033[1mu\033[0m ");
     printBits(sizeof(u), &u, -1);
     printf("\033[1mv\033[0m ");
@@ -143,15 +144,28 @@ void setBit(ubyte *number, int bitPosition)
 void crack_k1_and_k2(ubyte *k1, ubyte *k2, ubyte *k3) {
     *k1 = 0;
     *k2 = 0;
-    int keyoverflow, bitPos;
+    int bitPos;
     ubyte w[4];
 
     for (bitPos = 1; bitPos <= 7; bitPos++) {
         // Berechne w für die vier Kombinationen von u und v
-        w[0] = test(0, 0, &keyoverflow, bitPos);
-        w[1] = test(1 << bitPos - 1, 0, &keyoverflow, bitPos);
-        w[2] = test(0, 1 << bitPos - 1, &keyoverflow, bitPos);
-        w[3] = test(1 << bitPos - 1, 1 << bitPos - 1, &keyoverflow, bitPos);
+        w[0] = test(0, 0, bitPos);
+        w[1] = test(1 << bitPos - 1, 0, bitPos);
+        w[2] = test(0, 1 << bitPos - 1, bitPos);
+        
+        // 4. Fall aus ersten drei ableiten
+        int bitCount = 0;
+        int i;
+        for (i = 0; i < 3; i++) {
+            bitCount += isBitSet(w[i], bitPos);
+        }        
+        if (bitCount % 2 == 0)
+            w[3] = 0xFF; 
+        else
+            w[3] = 0;
+
+        //printf("Neu: %d\n", bitCount % 2 == 0);
+        //printf("Alt: %d\n", test(1 << bitPos - 1, 1 << bitPos - 1, bitPos));
 
         // Finde das spezielle Bit für die aktuelle Bitposition, welches zeigt,
         // bei welchem Fall (u, v) der Überlauf war
@@ -194,7 +208,30 @@ int main(int argc, char **argv)
     Feal_NewKey();
     crack_k1_and_k2(&k1, &k2, &k3);
     // TODO: k3 knacken
-    k3 = 0;
+    
+    k1 = rotl(k1);
+    k2 = rotl(k2);
+
+    ubyte u = 0;
+    ubyte v = 1;
+    ubyte x = k1 ^ u;
+    ubyte y = k2 ^ v;
+    ubyte z = rotl((x + y + 1) % 256);
+    ubyte w = calc_f(u, v);
+    k3 = w ^ z;
+    printf("k3 = ");
+    printBits(sizeof(k3), &k3, -1);
+    printf("\n");
+
+    
+    //k3 = rotl(k3);
+
+    printf("k1 nach rotl = ");
+    printBits(sizeof(k1), &k1, -1);
+    printf("\n");
+    printf("k2 nach rotl = ");
+    printBits(sizeof(k2), &k2, -1);
+    printf("\n");
 
     printf("Lösung: $%02x $%02x $%02x: %s",k1,k2,k3, Feal_CheckKey(k1,k2,k3)?"OK!":"falsch" );
     return 0;
