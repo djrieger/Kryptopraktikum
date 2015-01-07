@@ -49,23 +49,6 @@ static char DeCrypt2(char c)
      *>>>>         <<<<*/
   }
 
-
-  static char EnCryptA(char c)
-  {
-    /*>>>>         <<<<*
-     *>>>> AUFGABE <<<<*
-     *>>>>         <<<<*/
-     
-     
-  }
-
-static char EnCryptB(char c)
-  {
-    /*>>>>         <<<<*
-     *>>>> AUFGABE <<<<*
-     *>>>>         <<<<*/
-  }
-
 /* ------------------------------------------------------------------------------ */
 
 int main(int argc, char **argv)
@@ -135,24 +118,43 @@ int main(int argc, char **argv)
        *>>>>          - Antwortpaket an Alice senden         <<<<*
        *>>>>          - Kommunikation abhören                <<<<*
        *>>>>                                                 <<<<*/
-       ServerData data;
-       DES_key k_AB = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 };
-       //TODO: use this function: DES_GenKey(,0,);
+       /*ServerData data;
+       DES_key k_AB;// = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 };
+       k_AB = generateRandomUBYTES(8);
        int timestamp = (unsigned)time(NULL);
        char *AliceNetName = "Alice";
 
        data.TimeStamp = timestamp;
        data.Key_AB = k_AB;
        data.Receiver = *AliceNetName;
-       //data mit K_BS verschlüsseln
 
+       //data mit K_BS verschlüsseln
+       Data_ikey *b_ikey;
+       DES_GenKeys(UserTable[b_pos],0,b_ikey);
+       //fprint("b_ikey: %d\n", b_ikey);
+
+       /* DES_OFB ver- bzw. entschlüsselt LEN Bytes von SRC nach DST im
+        * Output Feedback Mode (Rückkopplungsbreite: * Bytes). LEN muß NICHT
+        * durch 8 teilbar sein! 
+       UBYTE dest_b;
+       DES_OFB(*b_ikey, k_AB, &data, sizeof(data),  &dest_b);
+       
+
+       */
        //{{data}K_BS und timestamp, K_AB, B} mit K_AS verschlüsseln
+
+      UBYTE bytes[8];
+      generateRandomUBYTES(8, &bytes);
+      int j;
+      for(j=0; j<8;j++){
+        printf("%d.Byte: %u\n", j, bytes[j]);
+      }
+
 
 
 
        //strcpy(msg3.body.Server_Alice, data);
        //PutMessage("Alice",con,&msg3);
-
     }
 
     /* Verbindung zu Alice abbauen */
@@ -160,4 +162,13 @@ int main(int argc, char **argv)
   }
 
   return 0;
+  }
+
+  void generateRandomUBYTES(int length, UBYTE* result[]) {
+    int i;
+    srand(time(NULL));
+    for(i=0; i< length;i++){
+      *result[i] = (UBYTE) (rand() % 256);
+    }
+    return result;
   }
