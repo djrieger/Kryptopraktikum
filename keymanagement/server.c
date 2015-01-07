@@ -38,9 +38,28 @@ static char DeCrypt1(char c)
     /*>>>>         <<<<*
      *>>>> AUFGABE <<<<*
      *>>>>         <<<<*/
+
+
   }
 
 static char DeCrypt2(char c)
+  {
+    /*>>>>         <<<<*
+     *>>>> AUFGABE <<<<*
+     *>>>>         <<<<*/
+  }
+
+
+  static char EnCryptA(char c)
+  {
+    /*>>>>         <<<<*
+     *>>>> AUFGABE <<<<*
+     *>>>>         <<<<*/
+     
+     
+  }
+
+static char EnCryptB(char c)
   {
     /*>>>>         <<<<*
      *>>>> AUFGABE <<<<*
@@ -53,7 +72,7 @@ int main(int argc, char **argv)
 {
   Connection con;        /* Verbindung vom Clienten d.h. Alice */
   PortConnection port;   /* Das Port des Servers */
-  Message msg1,msg2;
+  Message msg1,msg2,msg3;
   int i,a_pos,b_pos,badserver;
   char *ServerNetName;
 
@@ -116,6 +135,24 @@ int main(int argc, char **argv)
        *>>>>          - Antwortpaket an Alice senden         <<<<*
        *>>>>          - Kommunikation abhören                <<<<*
        *>>>>                                                 <<<<*/
+       ServerData data;
+       DES_key k_AB = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 };
+       //TODO: use this function: DES_GenKey(,0,);
+       int timestamp = (unsigned)time(NULL);
+       char *AliceNetName = "Alice";
+
+       data.TimeStamp = timestamp;
+       data.Key_AB = k_AB;
+       data.Receiver = *AliceNetName;
+       //data mit K_BS verschlüsseln
+
+       //{{data}K_BS und timestamp, K_AB, B} mit K_AS verschlüsseln
+
+
+
+       //strcpy(msg3.body.Server_Alice, data);
+       //PutMessage("Alice",con,&msg3);
+
     }
 
     /* Verbindung zu Alice abbauen */

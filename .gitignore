@@ -4,3 +4,6 @@ makeandrun.sh
 vigenere-attacke
 pin/pin
 feal
+keymanagement/alice
+keymanagement/bob
+keymanagement/server
