@@ -92,6 +92,8 @@ int main(int argc, char **argv)
   /***********  Antwort des Servers lesen  ***********/
   GetMessage("Server",con,&msg1,Server_Alice);
 
+  //printf("timestamp %d\n", msg1.body.Server_Alice.Serv_A1.Receiver);
+
   /****************  Verbindung zum Server abbauen  *************/
   DisConnect(con);
 

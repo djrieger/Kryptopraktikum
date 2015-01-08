@@ -15,6 +15,8 @@
 const char *ServerName = "Server"; 
 /* #define BADSERVER */ /* wenn definiert, wird der Verkehr zwischen den beiden Partnern abgehört. */
 
+const char *AliceName = "Alice"; 
+
 struct UserEntry {
   const char *Name;   /* name des Benutzers */
   DES_key Key;        /* Geheimer Schlüssel */
@@ -119,41 +121,53 @@ int main(int argc, char **argv)
        *>>>>          - Kommunikation abhören                <<<<*
        *>>>>                                                 <<<<*/
        //Generates random UBYTE[] - used for IV and k_ab
-       DES_key result[8];
+       /**DES_key result[8];
        int i;
        srand(time(NULL));
        for(i=0; i< sizeof(result); i++){
           result[i] = rand() % 256;
          printf("result[%d] = %d\n", i, result[i]);
         }
-       // Gathering ServerData
-       ServerData data;
-       DES_key k_AB;// = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 };
-       k_AB = result;
-       int timestamp = (unsigned)time(NULL);
-       char *AliceNetName = "Alice";
+        */
 
-       data.TimeStamp = timestamp;
-       data.Key_AB = k_AB;
-       data.Receiver = *AliceNetName;
+        //k_AB = result;
+
+
+       // Gathering ServerData
+       DES_key k_AB = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 };
+
+       int timestamp = (unsigned)time(NULL);
+
+
+      // int i;
+       //for(i = 0; i < 3; i++)
+       //printf("%x", UserTable[0].Key[i]);
 
        //data mit K_BS verschlüsseln
-       Data_ikey *b_ikey;
-       DES_GenKeys(UserTable[b_pos],0,b_ikey);
+       DES_ikey b_ikey;
+       DES_GenKeys(UserTable[b_pos].Key,0,&b_ikey);
+
+
        //fprint("b_ikey: %d\n", b_ikey);
 
        /* DES_OFB ver- bzw. entschlüsselt LEN Bytes von SRC nach DST im
         * Output Feedback Mode (Rückkopplungsbreite: * Bytes). LEN muß NICHT
         * durch 8 teilbar sein! */
-       UBYTE dest_b;
-       DES_OFB(*b_ikey, result, &data, sizeof(data), &dest_b);
+       //UBYTE dest_b;
+       //DES_OFB(*b_ikey, result, &data, sizeof(data), &dest_b);
        
 
+       ServerData data = {timestamp, {k_AB[0],k_AB[1],k_AB[2],k_AB[3],k_AB[4],k_AB[5],k_AB[6],k_AB[7]}, "Alice"};
       
+
        //{{data}K_BS und timestamp, K_AB, B} mit K_AS verschlüsseln
 
-       //strcpy(msg3.body.Server_Alice, data);
-       //PutMessage("Alice",con,&msg3);
+       msg3.typ =  Server_Alice;
+       msg3.body.Server_Alice.Serv_A1 = data;
+
+      printf("%s\n", msg3.body.Server_Alice.Serv_A1.Receiver);
+
+       PutMessage("Alice",con,&msg3);
     }
 
     /* Verbindung zu Alice abbauen */
