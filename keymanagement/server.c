@@ -118,9 +118,18 @@ int main(int argc, char **argv)
        *>>>>          - Antwortpaket an Alice senden         <<<<*
        *>>>>          - Kommunikation abhören                <<<<*
        *>>>>                                                 <<<<*/
-       /*ServerData data;
+       //Generates random UBYTE[] - used for IV and k_ab
+       DES_key result[8];
+       int i;
+       srand(time(NULL));
+       for(i=0; i< sizeof(result); i++){
+          result[i] = rand() % 256;
+         printf("result[%d] = %d\n", i, result[i]);
+        }
+       // Gathering ServerData
+       ServerData data;
        DES_key k_AB;// = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 };
-       k_AB = generateRandomUBYTES(8);
+       k_AB = result;
        int timestamp = (unsigned)time(NULL);
        char *AliceNetName = "Alice";
 
@@ -135,23 +144,13 @@ int main(int argc, char **argv)
 
        /* DES_OFB ver- bzw. entschlüsselt LEN Bytes von SRC nach DST im
         * Output Feedback Mode (Rückkopplungsbreite: * Bytes). LEN muß NICHT
-        * durch 8 teilbar sein! 
+        * durch 8 teilbar sein! */
        UBYTE dest_b;
-       DES_OFB(*b_ikey, k_AB, &data, sizeof(data),  &dest_b);
+       DES_OFB(*b_ikey, result, &data, sizeof(data), &dest_b);
        
 
-       */
+      
        //{{data}K_BS und timestamp, K_AB, B} mit K_AS verschlüsseln
-
-      UBYTE bytes[8];
-      generateRandomUBYTES(8, &bytes);
-      int j;
-      for(j=0; j<8;j++){
-        printf("%d.Byte: %u\n", j, bytes[j]);
-      }
-
-
-
 
        //strcpy(msg3.body.Server_Alice, data);
        //PutMessage("Alice",con,&msg3);
@@ -162,13 +161,4 @@ int main(int argc, char **argv)
   }
 
   return 0;
-  }
-
-  void generateRandomUBYTES(int length, UBYTE* result[]) {
-    int i;
-    srand(time(NULL));
-    for(i=0; i< length;i++){
-      *result[i] = (UBYTE) (rand() % 256);
-    }
-    return result;
   }
