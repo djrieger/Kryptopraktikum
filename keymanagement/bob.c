@@ -88,6 +88,12 @@ int main(int argc, char **argv)
      *>>>>          - Antwort erzeugen           <<<<*
      *>>>>          - Schlüssel für telefonieren <<<<*
      *>>>>                                       <<<<*/
+  msg1.typ = Bob_Alice;
+  printf("%d\n", msg1.body.Alice_Bob.Auth_A2.Rand);
+  AuthData authData;
+  authData.Rand = msg1.body.Alice_Bob.Auth_A2.Rand + 1;
+  strcpy(authData.Name, MakeNetName("Bob"));
+  PutMessage("Alice",con,&msg1);
 
   /***********************  Phone starten  *****************************/
   Phone(con,OurName,OthersName,EnCrypt,DeCrypt);

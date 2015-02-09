@@ -88,21 +88,31 @@ int main(int argc, char **argv)
   strcpy(msg1.body.Alice_Server.A,OurName);
   strcpy(msg1.body.Alice_Server.B,OthersName);
   PutMessage("Server",con,&msg1);
-
   /***********  Antwort des Servers lesen  ***********/
   GetMessage("Server",con,&msg1,Server_Alice);
-
-  //printf("timestamp %d\n", msg1.body.Server_Alice.Serv_A1.Receiver);
+  printf("%d\n", msg1.body.Server_Alice.Serv_A1.TimeStamp);
 
   /****************  Verbindung zum Server abbauen  *************/
-  DisConnect(con);
-
   /*>>>>                                         <<<<*
    *>>>> AUFGABE: - Entschlüsseln der Nachricht  <<<<*
    *>>>>          - Nachrichtenaustauch mit Bob  <<<<*
    *>>>>          - Überprüfen der Bob-Nachricht <<<<*
    *>>>>          - Schlüssel für Telefonieren   <<<<*
    *>>>>                                         <<<<*/
+  ServerData bobsPackage;
+  bobsPackage = msg1.body.Server_Alice.Serv_B1;
+
+  msg1.typ = Alice_Bob;
+  msg1.body.Alice_Bob.Serv_B2 = bobsPackage;
+
+  AuthData authData;
+  authData.Rand = 42;
+  strcpy(authData.Name, MakeNetName("Alice"));
+  msg1.body.Alice_Bob.Auth_A2 = authData;
+  PutMessage("Bob",con,&msg1);
+
+  GetMessage("Bob", con, &msg1, Bob_Alice);
+  printf("%d\n", msg1.body.Bob_Alice.Auth_B3.Rand);
 
   /***********************  Phone starten  *****************************/
   Phone(con,OurName,OthersName,EnCrypt,DeCrypt);

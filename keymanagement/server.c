@@ -13,9 +13,9 @@
 
 /* Unser 'Netzwerk'-Name und die unserer Kommunikationspartner */
 const char *ServerName = "Server"; 
+const char *AliceName = "Alice";  
+const char *BobName = "Bob";
 /* #define BADSERVER */ /* wenn definiert, wird der Verkehr zwischen den beiden Partnern abgehört. */
-
-const char *AliceName = "Alice"; 
 
 struct UserEntry {
   const char *Name;   /* name des Benutzers */
@@ -40,8 +40,6 @@ static char DeCrypt1(char c)
     /*>>>>         <<<<*
      *>>>> AUFGABE <<<<*
      *>>>>         <<<<*/
-
-
   }
 
 static char DeCrypt2(char c)
@@ -57,9 +55,11 @@ int main(int argc, char **argv)
 {
   Connection con;        /* Verbindung vom Clienten d.h. Alice */
   PortConnection port;   /* Das Port des Servers */
-  Message msg1,msg2,msg3;
+  Message msg1,msg2;
   int i,a_pos,b_pos,badserver;
   char *ServerNetName;
+  char *AliceNetName;
+char *BobNetName;
 
   /* Konstruktion eindeutiger Namen für das Netzwerksystem:
    * OurName, OthersName und ServerName wird der Gruppenname vorangestellt.
@@ -70,6 +70,8 @@ int main(int argc, char **argv)
    */
 
   ServerNetName = MakeNetName(ServerName);
+  AliceNetName = MakeNetName(AliceName);
+  BobNetName = MakeNetName(BobName);
   badserver = (argc>1); /* Bei Argument: Bösen Server spielen! */
   if (badserver) printf("**** Warnung, dieser Server ist kompromitiert ****\n");
 
@@ -120,54 +122,24 @@ int main(int argc, char **argv)
        *>>>>          - Antwortpaket an Alice senden         <<<<*
        *>>>>          - Kommunikation abhören                <<<<*
        *>>>>                                                 <<<<*/
-       //Generates random UBYTE[] - used for IV and k_ab
-       /**DES_key result[8];
-       int i;
-       srand(time(NULL));
-       for(i=0; i< sizeof(result); i++){
-          result[i] = rand() % 256;
-         printf("result[%d] = %d\n", i, result[i]);
-        }
-        */
+    
+      DES_key k_AB = {0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08};
 
-        //k_AB = result;
+      ServerData data;
+      int timestamp = GetCurrentTime();
+      data.TimeStamp = timestamp;
+      strcpy(data.Key_AB, k_AB);
+      strcpy(data.Receiver, BobNetName);
 
+      ServerData data2;
+      data2.TimeStamp = timestamp;
+      strcpy(data2.Key_AB, k_AB);
+      strcpy(data2.Receiver, AliceNetName);
 
-       // Gathering ServerData
-       DES_key k_AB = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 };
-
-       int timestamp = (unsigned)time(NULL);
-
-
-      // int i;
-       //for(i = 0; i < 3; i++)
-       //printf("%x", UserTable[0].Key[i]);
-
-       //data mit K_BS verschlüsseln
-       DES_ikey b_ikey;
-       DES_GenKeys(UserTable[b_pos].Key,0,&b_ikey);
-
-
-       //fprint("b_ikey: %d\n", b_ikey);
-
-       /* DES_OFB ver- bzw. entschlüsselt LEN Bytes von SRC nach DST im
-        * Output Feedback Mode (Rückkopplungsbreite: * Bytes). LEN muß NICHT
-        * durch 8 teilbar sein! */
-       //UBYTE dest_b;
-       //DES_OFB(*b_ikey, result, &data, sizeof(data), &dest_b);
-       
-
-       ServerData data = {timestamp, {k_AB[0],k_AB[1],k_AB[2],k_AB[3],k_AB[4],k_AB[5],k_AB[6],k_AB[7]}, "Alice"};
-      
-
-       //{{data}K_BS und timestamp, K_AB, B} mit K_AS verschlüsseln
-
-       msg3.typ =  Server_Alice;
-       msg3.body.Server_Alice.Serv_A1 = data;
-
-      printf("%s\n", msg3.body.Server_Alice.Serv_A1.Receiver);
-
-       PutMessage("Alice",con,&msg3);
+      msg2.typ = Server_Alice;
+      msg2.body.Server_Alice.Serv_A1 = data;
+      msg2.body.Server_Alice.Serv_B1 = data2;
+      PutMessage("Client",con,&msg2);
     }
 
     /* Verbindung zu Alice abbauen */
