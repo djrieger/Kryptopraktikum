@@ -30,24 +30,24 @@ const struct UserEntry UserTable[] = {
 };
 
 
-DES_data phone_iv1,phone_iv2;
+DES_data phone_iv1 = { 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 };
+DES_data phone_iv2 = { 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 };
 DES_ikey ikey_ab;
 
 /* ------------------------------------------------------------------------------ */
 
 static char DeCrypt1(char c)
   {
-    /*>>>>         <<<<*
-     *>>>> AUFGABE <<<<*
-     *>>>>         <<<<*/
+    DES_CFB_Dec(ikey_ab, phone_iv1, &c, sizeof(c), &c);
+    return c;
   }
 
 static char DeCrypt2(char c)
   {
-    /*>>>>         <<<<*
-     *>>>> AUFGABE <<<<*
-     *>>>>         <<<<*/
+    DES_CFB_Dec(ikey_ab, phone_iv2, &c, sizeof(c), &c);
+    return c;
   }
+
 
 /* ------------------------------------------------------------------------------ */
 
@@ -73,13 +73,14 @@ char *BobNetName;
   AliceNetName = MakeNetName(AliceName);
   BobNetName = MakeNetName(BobName);
   badserver = (argc>1); /* Bei Argument: Bösen Server spielen! */
-  if (badserver) printf("**** Warnung, dieser Server ist kompromitiert ****\n");
 
   /***************  Globales Port eröffnen  ***************/
   if (!(port=OpenPort(ServerNetName))) {
     fprintf(stderr,"Kann das Serverport nicht erzeugen: %s\n",NET_ErrorText());
     exit(20);
   }
+
+  TapConnection tapConn = TapConnect(AliceNetName, BobNetName);
 
   while (1) { /* Für immer ... */
 
@@ -93,7 +94,7 @@ char *BobNetName;
     /*****************  Request von 'Alice' einlesen  *******************/
     GetMessage("Clinet",con,&msg1,Alice_Server);
     printf("SERVER: Key-Request von %s für Verbindung mit %s\n",
-	   msg1.body.Alice_Server.A,msg1.body.Alice_Server.B);
+     msg1.body.Alice_Server.A,msg1.body.Alice_Server.B);
 
     /* Suchen der beiden Partner in der Benutzertabelle */
     a_pos = b_pos = -1;
@@ -146,6 +147,12 @@ char *BobNetName;
     }
 
     /* Verbindung zu Alice abbauen */
+    if (badserver)
+    {
+       printf("**** Warnung, dieser Server ist kompromitiert ****\n");
+       PhoneTap_Init(AliceNetName, BobNetName);
+       PhoneTap(tapConn, AliceNetName, BobNetName, DeCrypt1, DeCrypt2);
+    }
     DisConnect(con);
   }
 
