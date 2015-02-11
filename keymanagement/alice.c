@@ -107,7 +107,7 @@ int main(int argc, char **argv)
   DisConnect(con);
 
   // 3 Alice -> Bob 
-  printf("Bob: Trying to connect to %s...\n", OthersNetName);
+   printf("Bob: Trying to connect to %s...\n", OthersNetName);
   if (!(con=ConnectTo(concatstrings(OurNetName,"_S",NULL),OthersNetName))) {
     fprintf(stderr,"ALICE: Kann keine Verbindung zu Bob aufbauen: %s\n",NET_ErrorText());
     exit(20);
@@ -138,10 +138,10 @@ int main(int argc, char **argv)
 
 
 
-  printf("disconnecting\n");
-  DisConnect(con);
   
   /***********************  Phone starten  *****************************/
   Phone(con,OurName,OthersName,EnCrypt,DeCrypt);
+  printf("disconnecting\n");
+  DisConnect(con);
   return 0;
 }

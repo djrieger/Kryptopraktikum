@@ -76,10 +76,16 @@ int main(int argc, char **argv)
   printf("Bob: Trying to connect to %s...\n", OthersNetName);
   /***************  Verbindungsaufbau zu Alice  ********************/
 
-  if (!(con=ConnectTo(OurNetName,OthersNetName))) {
-    fprintf(stderr,"Kann keine Verbindung zu %s aufbauen: %s\n",OthersNetName,NET_ErrorText());
+  printf("\nWarten auf eine Verbindung von Alice ....\n");
+  PortConnection port;
+  if (!(port=OpenPort(OurNetName))) {
+    fprintf(stderr,"Kann das Serverport nicht erzeugen: %s\n",NET_ErrorText());
     exit(20);
   }
+    if (!(con=WaitAtPort(port))) {
+      fprintf(stderr,"WaitAtPort ging schief: %s\n",NET_ErrorText());
+      exit(20);
+    }
 
   /***********  Paket von Alice mit Server- und Auth-Daten lesen **********/
 
