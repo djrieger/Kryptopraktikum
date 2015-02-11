@@ -28,7 +28,8 @@ DES_ikey iKey_AB;
  * Aufwand auch Datenblöcke, deren Länge nicht durch 8 teilbar sind,
  * bearbeitet werden können. Die Initialisierungsvektoren IV für die
  * heweilige Verschlüsselung werden in IV1 und IV2 gespeichert. */
-DES_data phone_iv1,phone_iv2;
+DES_data phone_iv1 = { 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 };
+DES_data phone_iv2 = { 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 };
 
 /* ------------------------------------------------------------------------------ */
 
@@ -36,11 +37,13 @@ DES_data phone_iv1,phone_iv2;
  * EnCrypt(c) : Verschlüsselt C mit KEY_AB/PHONE_IV1
  */
 
+// void DES_OFB(const DES_ikey ikey, DES_data iv, const UBYTE *src, int len, UBYTE *dst);
+
+
 static char EnCrypt(char c)
   {
-    /*>>>>         <<<<*
-     *>>>> AUFGABE <<<<*
-     *>>>>         <<<<*/
+    DES_CFB_Enc(iKey_AB, phone_iv1, &c, sizeof(c), &c);
+    return c;
   }
 
 
@@ -50,9 +53,8 @@ static char EnCrypt(char c)
 
 static char DeCrypt(char c)
   {
-    /*>>>>         <<<<*
-     *>>>> AUFGABE <<<<*
-     *>>>>         <<<<*/
+   DES_CFB_Dec(iKey_AB, phone_iv2, &c, sizeof(c), &c);
+    return c;
   }
 
 /* ------------------------------------------------------------------------------ */
@@ -96,6 +98,10 @@ int main(int argc, char **argv)
   // 2 Server -> Alice
   GetMessage("Server",con,&msg2,Server_Alice);
   printf("%d\n", msg2.body.Server_Alice.Serv_A1.TimeStamp);
+  // Key AB von Server empfangen:
+  DES_key k_AB;
+  strncpy(k_AB, msg2.body.Server_Alice.Serv_A1.Key_AB, sizeof(DES_key));
+  DES_GenKeys(k_AB, 1, iKey_AB);
 
   /****************  Verbindung zum Server abbauen  *************/
   /*>>>>                                         <<<<*

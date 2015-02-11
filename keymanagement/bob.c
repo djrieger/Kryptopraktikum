@@ -27,33 +27,29 @@ DES_ikey iKey_AB;
  * Aufwand auch Datenblöcke, deren Länge nicht durch 8 teilbar sind,
  * bearbeitet werden können. Die Initialisierungsvektoren IV für die
  * heweilige Verschlüsselung werden in IV1 und IV2 gespeichert. */
-DES_data phone_iv1,phone_iv2;
+DES_data phone_iv1 = { 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 };
+DES_data phone_iv2 = { 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 };
 
 /* ------------------------------------------------------------------------------ */
 
-/*
- * EnCrypt(c) : Verschlüsselt C
- */
+
 
 static char EnCrypt(char c)
   {
-    /*>>>>         <<<<*
-     *>>>> AUFGABE <<<<*
-     *>>>>         <<<<*/
+    DES_CFB_Enc(iKey_AB, phone_iv1, &c, sizeof(c), &c);
+    return c;
   }
 
 
 /*
- * DeCrypt(c) : Entschlüsselt C
+ * DeCrypt(c) : Entschlüsselt C mit KEY_AB/PHONE_IV2
  */
 
 static char DeCrypt(char c)
   {
-    /*>>>>         <<<<*
-     *>>>> AUFGABE <<<<*
-     *>>>>         <<<<*/
+   DES_CFB_Dec(iKey_AB, phone_iv2, &c, sizeof(c), &c);
+    return c;
   }
-
 /* -------------------------------------------------------------------------------- */
 
 int main(int argc, char **argv)
@@ -93,8 +89,12 @@ int main(int argc, char **argv)
   printf("Bob: Trying to get message from Alice\n");
 
   GetMessage(OthersName,con,&msg1,Alice_Bob);
-
   printf("Bob: Received message from Alice\n");
+
+
+  DES_key k_AB;
+  strncpy(k_AB, msg1.body.Alice_Bob.Serv_B2.Key_AB, sizeof(DES_key));
+  DES_GenKeys(k_AB, 1, iKey_AB);
 
     /*>>>>                                       <<<<*
      *>>>> AUFGABE: - Paket von Alice auspaken   <<<<*
