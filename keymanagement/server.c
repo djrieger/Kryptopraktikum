@@ -29,6 +29,8 @@ const struct UserEntry UserTable[] = {
   { "Carol", { 0x6f, 0x18, 0xa5, 0xcf, 0x11, 0x4e, 0xab, 0xf0 } }
 };
 
+DES_key k_AB = {0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08};
+
 
 DES_data phone_iv1 = { 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 };
 DES_data phone_iv2 = { 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 };
@@ -80,7 +82,7 @@ char *BobNetName;
     exit(20);
   }
 
-  TapConnection tapConn = TapConnect(AliceNetName, BobNetName);
+  
 
   while (1) { /* Für immer ... */
 
@@ -124,7 +126,6 @@ char *BobNetName;
        *>>>>          - Kommunikation abhören                <<<<*
        *>>>>                                                 <<<<*/
     
-      DES_key k_AB = {0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08};
 
       // 2 Server -> Alice
 
@@ -146,14 +147,26 @@ char *BobNetName;
       PutMessage("Client",con,&msg3);
     }
 
+    DisConnect(con);
+
     /* Verbindung zu Alice abbauen */
     if (badserver)
     {
        printf("**** Warnung, dieser Server ist kompromitiert ****\n");
-       PhoneTap_Init(AliceNetName, BobNetName);
-       PhoneTap(tapConn, AliceNetName, BobNetName, DeCrypt1, DeCrypt2);
+       TapConnection tapConn = TapConnect(BobNetName, AliceNetName);
+       if (!tapConn) {
+        printf("Could not tap connection\n");
+        continue;
+       }
+       printf("1\n");
+       // PhoneTap_Init(AliceNetName, BobNetName);
+       printf("2\n");
+       DES_GenKeys(k_AB, 1, ikey_ab);
+       PhoneTap(tapConn, BobNetName, AliceNetName, DeCrypt1, DeCrypt2);
+       printf("3\n");
+       TapDisconnect(tapConn);
     }
-    DisConnect(con);
+    
   }
 
   return 0;
