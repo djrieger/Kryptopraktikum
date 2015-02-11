@@ -1,0 +1,29 @@
+{
+     "folders":
+    [
+        
+        {
+            "path": ".",
+            "file_exclude_patterns": ["*.o", "*.sublime-workspace", "*.sublime-project"]
+        }
+    ],
+    "build_systems":
+    [
+        {
+            "name": "make clean",
+            "cmd": ["make", "clean"],
+            "working_dir": "$project_path"
+        },
+        {
+            "name": "make",
+            "file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
+            "cmd": ["make", "-j8"],
+            "working_dir": "$project_path"
+        },
+        {
+            "name": "lextest",
+            "file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
+            "cmd": ["./mj++","--lextest","tests/blatt2.mj"]
+        }
+    ]
+}

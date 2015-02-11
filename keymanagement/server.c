@@ -125,6 +125,8 @@ char *BobNetName;
     
       DES_key k_AB = {0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08};
 
+      // 2 Server -> Alice
+
       ServerData data;
       int timestamp = GetCurrentTime();
       data.TimeStamp = timestamp;
@@ -136,10 +138,11 @@ char *BobNetName;
       strcpy(data2.Key_AB, k_AB);
       strcpy(data2.Receiver, AliceNetName);
 
-      msg2.typ = Server_Alice;
-      msg2.body.Server_Alice.Serv_A1 = data;
-      msg2.body.Server_Alice.Serv_B1 = data2;
-      PutMessage("Client",con,&msg2);
+      Message msg3;
+      msg3.typ = Server_Alice;
+      msg3.body.Server_Alice.Serv_A1 = data;
+      msg3.body.Server_Alice.Serv_B1 = data2;
+      PutMessage("Client",con,&msg3);
     }
 
     /* Verbindung zu Alice abbauen */

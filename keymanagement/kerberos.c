@@ -48,6 +48,7 @@ void GetMessage(const NetName name, Connection con, Message *m, MsgType typ)
     int rcnt;
 
     rcnt = Receive(con,m,sizeof(Message));
+    printf("Received %d bytes, expected %d bytes\n", rcnt, sizeof(Message));
     if (rcnt!=sizeof(Message)) {
       fprintf(stderr,"Fehler beim Empfangen von %s: %s\n",name,NET_ErrorText());
       exit(20);

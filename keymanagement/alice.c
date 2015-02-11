@@ -84,13 +84,18 @@ int main(int argc, char **argv)
   }
 
   /******  Paket mit den beiden Namen erzeugen und Abschicken  *******/
+
+  // 1 Alice -> Server
+  
   msg1.typ = Alice_Server;
   strcpy(msg1.body.Alice_Server.A,OurName);
   strcpy(msg1.body.Alice_Server.B,OthersName);
   PutMessage("Server",con,&msg1);
   /***********  Antwort des Servers lesen  ***********/
-  GetMessage("Server",con,&msg1,Server_Alice);
-  printf("%d\n", msg1.body.Server_Alice.Serv_A1.TimeStamp);
+
+  // 2 Server -> Alice
+  GetMessage("Server",con,&msg2,Server_Alice);
+  printf("%d\n", msg2.body.Server_Alice.Serv_A1.TimeStamp);
 
   /****************  Verbindung zum Server abbauen  *************/
   /*>>>>                                         <<<<*
@@ -99,23 +104,44 @@ int main(int argc, char **argv)
    *>>>>          - Überprüfen der Bob-Nachricht <<<<*
    *>>>>          - Schlüssel für Telefonieren   <<<<*
    *>>>>                                         <<<<*/
-  ServerData bobsPackage;
-  bobsPackage = msg1.body.Server_Alice.Serv_B1;
+  DisConnect(con);
 
-  msg1.typ = Alice_Bob;
-  msg1.body.Alice_Bob.Serv_B2 = bobsPackage;
+  // 3 Alice -> Bob 
+  printf("Bob: Trying to connect to %s...\n", OthersNetName);
+  if (!(con=ConnectTo(concatstrings(OurNetName,"_S",NULL),OthersNetName))) {
+    fprintf(stderr,"ALICE: Kann keine Verbindung zu Bob aufbauen: %s\n",NET_ErrorText());
+    exit(20);
+  }
+  
+  ServerData bobsPackage;
+  bobsPackage = msg2.body.Server_Alice.Serv_B1;
+
+  Message msg3;
+  msg3.typ = Alice_Bob;
+  msg3.body.Alice_Bob.Serv_B2 = bobsPackage;
 
   AuthData authData;
   authData.Rand = 42;
   strcpy(authData.Name, MakeNetName("Alice"));
-  msg1.body.Alice_Bob.Auth_A2 = authData;
-  PutMessage("Bob",con,&msg1);
+  msg3.body.Alice_Bob.Auth_A2 = authData;
+  PutMessage("Bob",con,&msg3);
 
-  GetMessage("Bob", con, &msg1, Bob_Alice);
-  printf("%d\n", msg1.body.Bob_Alice.Auth_B3.Rand);
+  printf("Alice: Sent message to Bob\n");
 
+
+  // 4 Bob -> Alice
+  Message msg4;
+  printf("Alice: Getting message from Bob...\n");
+  GetMessage("Bob", con, &msg4, Bob_Alice);
+  printf("Alice: Got message from Bob\n");
+  printf("%d\n", msg4.body.Bob_Alice.Auth_B3.Rand);
+
+
+
+  printf("disconnecting\n");
+  DisConnect(con);
+  
   /***********************  Phone starten  *****************************/
   Phone(con,OurName,OthersName,EnCrypt,DeCrypt);
-  DisConnect(con);
   return 0;
 }

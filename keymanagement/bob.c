@@ -73,6 +73,7 @@ int main(int argc, char **argv)
   OurNetName    = MakeNetName(OurName);
   OthersNetName = MakeNetName(OthersName);
 
+  printf("Bob: Trying to connect to %s...\n", OthersNetName);
   /***************  Verbindungsaufbau zu Alice  ********************/
 
   if (!(con=ConnectTo(OurNetName,OthersNetName))) {
@@ -81,13 +82,21 @@ int main(int argc, char **argv)
   }
 
   /***********  Paket von Alice mit Server- und Auth-Daten lesen **********/
+
+  printf("Bob: Connected to Alice\n");
+  printf("Bob: Trying to get message from Alice\n");
+
   GetMessage(OthersName,con,&msg1,Alice_Bob);
+
+  printf("Bob: Received message from Alice\n");
 
     /*>>>>                                       <<<<*
      *>>>> AUFGABE: - Paket von Alice auspaken   <<<<*
      *>>>>          - Antwort erzeugen           <<<<*
      *>>>>          - Schlüssel für telefonieren <<<<*
      *>>>>                                       <<<<*/
+
+  // 4 Bob -> Alice   
   msg1.typ = Bob_Alice;
   printf("%d\n", msg1.body.Alice_Bob.Auth_A2.Rand);
   AuthData authData;
