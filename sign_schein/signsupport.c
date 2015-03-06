@@ -100,7 +100,7 @@ int Get_Public_Key( const String name, longnum_ptr y)
     const char *root;
 
     if (!(root=getenv("PRAKTROOT"))) root="";
-    filename=concatstrings(root,"/loesungen/sign_schein/public_keys.data",NULL);
+    filename=concatstrings(root,"sign_schein/public_keys.data",NULL);
     if (!(f=fopen(filename,"r"))) {
       fprintf(stderr,"GET_PUBLIC_KEY: Kann die Datei %s nicht öffnen: %s\n",filename,strerror(errno));
       exit(20);

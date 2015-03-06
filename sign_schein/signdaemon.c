@@ -54,7 +54,7 @@ int main(int argc, char **argv)
   int i,DestroySign;
 
   if (!(root=getenv("PRAKTROOT"))) root="";
-  datafile =concatstrings(root,"/loesungen/sign_schein/Sign_Daemon.data",NULL);
+  datafile =concatstrings(root,"sign_schein/Sign_Daemon.data",NULL);
 
   name = DAEMON_NAME;
   Debug = 0;
