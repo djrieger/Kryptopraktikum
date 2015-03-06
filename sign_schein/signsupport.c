@@ -100,8 +100,7 @@ int Get_Public_Key( const String name, longnum_ptr y)
     const char *root;
 
     if (!(root=getenv("PRAKTROOT"))) root="";
-    filename=concatstrings(root,"sign_schein/public_keys.data",NULL);
-    if (!(f=fopen(filename,"r"))) {
+    filename=concatstrings(root,"sign_schein/public_keys.data",NULL); if (!(f=fopen(filename,"r"))) {
       fprintf(stderr,"GET_PUBLIC_KEY: Kann die Datei %s nicht öffnen: %s\n",filename,strerror(errno));
       exit(20);
     }
@@ -138,6 +137,7 @@ int Get_Privat_Key(const char *filename, longnum_ptr p, longnum_ptr w, longnum_p
     SecretData sd;
 
     if (!filename) filename = concatstrings(getenv("HOME"),"/private_key.data",NULL);
+    printf("%s\n", filename);
     if (!(f=fopen(filename,"r"))) {
       fprintf(stderr,"GET_PRIVAT_KEY: Kann die Datei %s nicht öffnen: %s\n",filename,strerror(errno));
       return 0;

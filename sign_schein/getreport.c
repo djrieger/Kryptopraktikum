@@ -16,7 +16,7 @@
  *                  Andernfalls leerer String
  */
 
-static const char *OverrideNetName = "";
+static const char *OverrideNetName = "rilokru";
 
 
 
@@ -48,9 +48,47 @@ static int Verify_Sign(const_longnum_ptr mdc,const_longnum_ptr r,const_longnum_p
 
 static void Generate_Sign(const_longnum_ptr m, longnum_ptr r, longnum_ptr s, const_longnum_ptr x)
   {
-    /*>>>>                                           <<<<*
-     *>>>> AUFGABE: Erzeugen einer El-Gamal-Signatur <<<<*
-     *>>>>                                           <<<<*/
+    //printf("p=%lu, w=%lu\n", p, w);
+    // printf("m=%lu, r=%lu, s=%lu, x=%lu\n", LONGNUM_GET_LONG(*m), LONGNUM_GET_LONG(*r), LONGNUM_GET_LONG(*s), LONGNUM_GET_LONG(*x));
+
+    //p = 17;
+    //w = 13;
+
+    // Teilnehmer initialisieren
+    // 
+    //longnum p;
+    //LGenPrim(&p, FUNCTION_LGenPrim, LRand);
+    printf("p=%lu\n", LONGNUM_GET_LONG(&p, 0));
+    printf("w=%lu\n", LONGNUM_GET_LONG(&w, 0));
+    printf("x=%lu\n", LONGNUM_GET_LONG(x, 0));
+    printf("m=%lu\n", LONGNUM_GET_LONG(m, 0));
+    
+    // init k and pMinusOne
+    longnum k, pMinusOne;
+    longnum ggt, US, VS;
+    LInitNumber(&pMinusOne, NBITS(&p), 0);
+    LInitNumber(&k, NBITS(&p), 0);
+    LInitNumber(&ggt, NBITS(&p), 0);
+    LInitNumber(&US, NBITS(&p), 0);
+    LInitNumber(&VS, NBITS(&p), 0);
+    int sign;
+
+    long pAsLong = LONGNUM_GET_LONG(&p, 0);
+    LInt2Long(pAsLong - 1, &pMinusOne);
+    const_longnum_ptr pMinusOneConstPtr = &pMinusOne;
+    do {
+      // generate random number k (k < p - 1)
+      LRand(pMinusOneConstPtr, &k);
+      printf("k=%lu\n", LONGNUM_GET_LONG(&k, 0)); 
+      const_longnum_ptr k_constptr = &k;      
+      LggT(k_constptr, pMinusOneConstPtr, &ggt, &US, &VS, &sign);
+      printf("ggt=%lu\n", LONGNUM_GET_LONG(&ggt, 0));
+    } while (!LIsOne(&ggt));
+
+    // LModExp(w, x_A, y_A, p);
+
+    // Signieren von m
+    
   }
 
 
