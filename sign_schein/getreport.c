@@ -35,9 +35,17 @@ static longnum p,w;
 
 static int Verify_Sign(const_longnum_ptr mdc,const_longnum_ptr r,const_longnum_ptr s,const_longnum_ptr y)
   {
-    /*>>>>                                               <<<<*
-     *>>>> AUFGABE: Verifizieren einer El-Gamal-Signatur <<<<*
-     *>>>>                                               <<<<*/
+    const_longnum_ptr p_constptr = &p;
+    const_longnum_ptr w_constptr = &w;
+    longnum result, result_right;
+    LInitNumber(&result, NBITS(&p), 0);
+    LInitNumber(&result_right, NBITS(&p), 0);
+    
+    LModMultExp(y, r, r, s, &result, p_constptr);
+
+    LModExp(w_constptr, mdc, &result_right, p_constptr);
+
+    return LONGNUM_GET_LONG(&result, 0) == LONGNUM_GET_LONG(&result_right, 0);
   }
 
 
@@ -48,47 +56,57 @@ static int Verify_Sign(const_longnum_ptr mdc,const_longnum_ptr r,const_longnum_p
 
 static void Generate_Sign(const_longnum_ptr m, longnum_ptr r, longnum_ptr s, const_longnum_ptr x)
   {
-    //printf("p=%lu, w=%lu\n", p, w);
-    // printf("m=%lu, r=%lu, s=%lu, x=%lu\n", LONGNUM_GET_LONG(*m), LONGNUM_GET_LONG(*r), LONGNUM_GET_LONG(*s), LONGNUM_GET_LONG(*x));
-
-    //p = 17;
-    //w = 13;
-
-    // Teilnehmer initialisieren
-    // 
-    //longnum p;
-    //LGenPrim(&p, FUNCTION_LGenPrim, LRand);
+    printf("bits=%d\n", NBITS(&p));
     printf("p=%lu\n", LONGNUM_GET_LONG(&p, 0));
     printf("w=%lu\n", LONGNUM_GET_LONG(&w, 0));
     printf("x=%lu\n", LONGNUM_GET_LONG(x, 0));
     printf("m=%lu\n", LONGNUM_GET_LONG(m, 0));
     
-    // init k and pMinusOne
+    int flags = 0;
     longnum k, pMinusOne;
     longnum ggt, US, VS;
-    LInitNumber(&pMinusOne, NBITS(&p), 0);
-    LInitNumber(&k, NBITS(&p), 0);
-    LInitNumber(&ggt, NBITS(&p), 0);
-    LInitNumber(&US, NBITS(&p), 0);
-    LInitNumber(&VS, NBITS(&p), 0);
+    const_longnum_ptr k_constptr;
+    LInitNumber(&pMinusOne, NBITS(&p), flags);
+    LInitNumber(&k, NBITS(&p), flags);
+    LInitNumber(&ggt, NBITS(&p), flags);
+    LInitNumber(&US, NBITS(&p), flags);
+    LInitNumber(&VS, NBITS(&p), flags);
     int sign;
 
     long pAsLong = LONGNUM_GET_LONG(&p, 0);
     LInt2Long(pAsLong - 1, &pMinusOne);
     const_longnum_ptr pMinusOneConstPtr = &pMinusOne;
+
+    // calculate k
     do {
       // generate random number k (k < p - 1)
       LRand(pMinusOneConstPtr, &k);
-      printf("k=%lu\n", LONGNUM_GET_LONG(&k, 0)); 
-      const_longnum_ptr k_constptr = &k;      
+      k_constptr = &k;      
       LggT(k_constptr, pMinusOneConstPtr, &ggt, &US, &VS, &sign);
-      printf("ggt=%lu\n", LONGNUM_GET_LONG(&ggt, 0));
     } while (!LIsOne(&ggt));
 
-    // LModExp(w, x_A, y_A, p);
+    printf("k=%lu\n", LONGNUM_GET_LONG(&k, 0)); 
 
-    // Signieren von m
+    const_longnum_ptr w_constptr = &w;
+    const_longnum_ptr p_constptr = &p;
+    LModExp(w_constptr, k_constptr, r, p_constptr);
+    printf("r = %lu\n", LONGNUM_GET_LONG(r, 0));
+    printf("w^k mod p = %lu^%lu mod %lu\n", LONGNUM_GET_LONG(&w, 0), LONGNUM_GET_LONG(&k, 0), LONGNUM_GET_LONG(&p, 0));
+    // TODO: r eigentlich falsch, größer als es durch Modulo p sein sollte
+
+    LInvert(&k, pMinusOneConstPtr);
+
+    long r_long = LONGNUM_GET_LONG(r, 0);
+    long x_long = LONGNUM_GET_LONG(x, 0);
+    long m_long = LONGNUM_GET_LONG(m, 0);
     
+    longnum a_longnum;
+    LInitNumber(&a_longnum, NBITS(&p), flags);
+    LInt2Long(m_long - r_long * x_long, &a_longnum);
+    const_longnum_ptr a_constptr = &a_longnum;
+
+    LModMult(a_constptr, k_constptr, s, pMinusOneConstPtr);
+    printf("s = %lu\n", LONGNUM_GET_LONG(s, 0));
   }
 
 
