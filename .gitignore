@@ -9,3 +9,5 @@ keymanagement/bob
 keymanagement/server
 kerberos.sublime-workspace
 getreport
+longint/alicebob
+longint/exptest
