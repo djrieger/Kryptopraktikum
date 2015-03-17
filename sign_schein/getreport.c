@@ -32,81 +32,68 @@ static longnum p,w;
  *
  * RETURN-Code: 1, wenn Signatur OK, 0 sonst.
  */
-
-static int Verify_Sign(const_longnum_ptr mdc,const_longnum_ptr r,const_longnum_ptr s,const_longnum_ptr y)
+static int Verify_Sign(const_longnum_ptr mdc, const_longnum_ptr r, const_longnum_ptr s, const_longnum_ptr y)
   {
-    const_longnum_ptr p_constptr = &p;
-    const_longnum_ptr w_constptr = &w;
-    longnum result, result_right;
-    LInitNumber(&result, NBITS(&p), 0);
-    LInitNumber(&result_right, NBITS(&p), 0);
-    
-    LModMultExp(y, r, r, s, &result, p_constptr);
-
-    LModExp(w_constptr, mdc, &result_right, p_constptr);
-
-    return LONGNUM_GET_LONG(&result, 0) == LONGNUM_GET_LONG(&result_right, 0);
+    /*>>>>                                               <<<<*
+     *>>>> AUFGABE: Verifizieren einer El-Gamal-Signatur <<<<*
+     *>>>>                                               <<<<*/
+    longnum tmp_left, tmp_right;
+    LInitNumber(&tmp_left, NBITS(&p), 0);
+    LInitNumber(&tmp_right, NBITS(&p), 0);
+ 
+    LModMultExp(y, r, r, s, &tmp_left, &p); // (y^r * r^s) mod p
+ 
+    LModExp(&w, mdc, &tmp_right, &p); // w^m mod p
+ 
+    //printf("Vergleich ergibt: %i\n", (LCompare(&tmp_left, &tmp_right) == 0));
+   return (LCompare(&tmp_left, &tmp_right) == 0);
   }
-
-
+ 
+ 
 /*
- * Generate_Sign(m,r,s,x) : Erzeugt zu der MDC M eine El-Gamal-Signatur 
+* Generate_Sign(m,r,s,x) : Erzeugt zu der MDC M eine El-Gamal-Signatur
  *    in R und S. X ist der private Schlüssel
- */
-
+*/
 static void Generate_Sign(const_longnum_ptr m, longnum_ptr r, longnum_ptr s, const_longnum_ptr x)
   {
-    printf("bits=%d\n", NBITS(&p));
-    printf("p=%lu\n", LONGNUM_GET_LONG(&p, 0));
-    printf("w=%lu\n", LONGNUM_GET_LONG(&w, 0));
-    printf("x=%lu\n", LONGNUM_GET_LONG(x, 0));
-    printf("m=%lu\n", LONGNUM_GET_LONG(m, 0));
-    
-    int flags = 0;
-    longnum k, pMinusOne;
-    longnum ggt, US, VS;
-    const_longnum_ptr k_constptr;
-    LInitNumber(&pMinusOne, NBITS(&p), flags);
-    LInitNumber(&k, NBITS(&p), flags);
-    LInitNumber(&ggt, NBITS(&p), flags);
-    LInitNumber(&US, NBITS(&p), flags);
-    LInitNumber(&VS, NBITS(&p), flags);
-    int sign;
-
-    long pAsLong = LONGNUM_GET_LONG(&p, 0);
-    LInt2Long(pAsLong - 1, &pMinusOne);
-    const_longnum_ptr pMinusOneConstPtr = &pMinusOne;
-
-    // calculate k
+    /*>>>>                                           <<<<*
+     *>>>> AUFGABE: Erzeugen einer El-Gamal-Signatur <<<<*
+     *>>>>                                           <<<<*/
+    longnum k;
+    LInitNumber(&k, NBITS(&p), 0);
+ 
+    longnum mod;
+    LCpy(&mod, &p);
+                // mod ist nun p
+   
+                longnum EINS;
+    LInitNumber(&EINS, NBITS(&p), 0);
+    LInt2Long(1, &EINS);
+ 
+    LSub(&EINS, &mod);
+    // mod ist nun p-1
+ 
+    // Suche gültige Zufallszahl
     do {
-      // generate random number k (k < p - 1)
-      LRand(pMinusOneConstPtr, &k);
-      k_constptr = &k;      
-      LggT(k_constptr, pMinusOneConstPtr, &ggt, &US, &VS, &sign);
-    } while (!LIsOne(&ggt));
-
-    printf("k=%lu\n", LONGNUM_GET_LONG(&k, 0)); 
-
-    const_longnum_ptr w_constptr = &w;
-    const_longnum_ptr p_constptr = &p;
-    LModExp(w_constptr, k_constptr, r, p_constptr);
-    printf("r = %lu\n", LONGNUM_GET_LONG(r, 0));
-    printf("w^k mod p = %lu^%lu mod %lu\n", LONGNUM_GET_LONG(&w, 0), LONGNUM_GET_LONG(&k, 0), LONGNUM_GET_LONG(&p, 0));
-    // TODO: r eigentlich falsch, größer als es durch Modulo p sein sollte
-
-    LInvert(&k, pMinusOneConstPtr);
-
-    long r_long = LONGNUM_GET_LONG(r, 0);
-    long x_long = LONGNUM_GET_LONG(x, 0);
-    long m_long = LONGNUM_GET_LONG(m, 0);
+      LRand(&p, &k);
+    } while(LInvert(&k, &mod)); // k < p - 1 AND ggT(k, p-1) = 1 <=> k invertierbar
+ 
+    LModExp(&w, &k, r, &p);
+    // r ist nun w^k mod p
     
-    longnum a_longnum;
-    LInitNumber(&a_longnum, NBITS(&p), flags);
-    LInt2Long(m_long - r_long * x_long, &a_longnum);
-    const_longnum_ptr a_constptr = &a_longnum;
-
-    LModMult(a_constptr, k_constptr, s, pMinusOneConstPtr);
-    printf("s = %lu\n", LONGNUM_GET_LONG(s, 0));
+    longnum tmp;
+    LInitNumber(&tmp, NBITS(&p), 0);
+    LModMult(r, x, &tmp, &mod);
+    LCpy(s, m);
+    LSubMod(&tmp, s, &mod);
+    // s beinhaltet nun (m - r*x) mod (p-1)
+ 
+    LCpy(&tmp, &k);
+    LInvert(&tmp, &mod);
+    // tmp beinhaltet nun k^-1
+ 
+    LModMult(s, &tmp, s, &mod);
+    // s = (m - r*x) * k^-1 mod (p-1)
   }
 
 
@@ -166,6 +153,34 @@ int main(int argc, char **argv)
   /*>>>>                                      <<<<*
    *>>>> AUFGABE: Fälschen der Dämon-Signatur <<<<*
    *>>>>                                      <<<<*/
+
+   printf("Sende Nachricht an Demon zurück...\n");
+  if (!(con=ConnectTo(OurName,DAEMON_NAME))) {
+    fprintf(stderr,"Kann keine Verbindung zum Daemon aufbauen: %s\n",NET_ErrorText());
+    exit(20);
+  }
+
+  strcpy(msg.body.VerifyRequest.Report[0], "Der Teilnehmer rilokru die erforderliche Punktezahl weit absolut übertroffen.");
+  strcpy(msg.body.VerifyRequest.Report[1], "Schein her! Diese Auskunft ist elektronisch unterschrieben und daher gültig --- gez. Sign_Daemon");
+
+  msg.typ = VerifyRequest;
+  if (Transmit(con,&msg,sizeof(msg))!=sizeof(msg)) {
+    fprintf(stderr,"Fehler beim Senden des 'VerifyRequest': %s\n",NET_ErrorText());
+    exit(20);
+  }
+
+  if (Receive(con,&msg,sizeof(msg))!=sizeof(msg)) {
+    fprintf(stderr,"Fehler beim Empfang des 'VerifyResponse': %s\n",NET_ErrorText());
+    exit(20);
+  }
+  printf("VerifyReponse vom Dämon:\n");
+  
+  printf("\t%s\n",msg.body.VerifyResponse.Res);
+/*
+  VerifyRequest vr;
+  vr.NumLines = 0; 
+  
+  if (Transmit(con,&msg,sizeof(msg))!=sizeof(msg)) {  */
   return 0;
 }
 
